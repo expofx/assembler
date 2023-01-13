@@ -7,8 +7,9 @@ class Parser:
     self.command = ""
     self.idx = 0
     with open(input_file, 'r') as f:
-      self.input_file = [x.strip().replace(" ","") for x in f.readlines()] # get rid of whitespace
-      self.input_file = [x for x in self.input_file if x and x[0] != "/"] # get rid of newline and comment
+      self.input_file = [x.strip().replace(" ","") for x in f.readlines()] # whitespace
+      self.input_file = [x for x in self.input_file if x and x[0] != "/"] # newline and comment
+      self.input_file = [x.split("//")[0] for x in self.input_file] # inline comment
   
   @staticmethod
   def strip(s):
@@ -77,6 +78,25 @@ class Code:
     None: "000", "JGT": "001", "JEQ": "010", "JGE": "011", "JLT": "100", "JNE": "101", "JLE": "110", "JMP": "111"
     }
     return jump[m]
+  
+class SymbolTable:
+  def __init__(self):
+    self.table = {
+    "SP": 0, "LCL": 1, "ARG": 2, "THIS": 3, "THAT": 4, "SCREEN": 16384, "KBD": 24576
+    }
+    for i in range(16):
+      self.table["R" + str(i)] = i # R0-R15
+    self.rom = 0 # incrementer in ROM (labels, line in program)
+    self.ram = 16 # incrementer in RAM (variable)
+  
+  def addEntry(self, symbol, address):
+    self.table[symbol] = address
+  
+  def contains(self, symbol):
+    return symbol in self.table
+
+  def getAddress(self, symbol):
+    return self.table[symbol]
 
 if __name__ == "__main__":
 
@@ -88,22 +108,47 @@ if __name__ == "__main__":
   output_file = open(input_file.replace(".asm", ".hack"), 'w')
 
   parser = Parser(input_file)
+  symboltable = SymbolTable()
   print(parser.input_file)
+  
+  # first pass
+  
+  while parser.hasMoreCommands():
+    parser.advance()
+
+    if parser.commandType() == "A" or parser.commandType() == "C":
+      symboltable.rom += 1
+    elif parser.commandType() == "L": # build symbol table
+      symboltable.addEntry(parser.symbol(), symboltable.rom)
+  
+  # second pass
+  
+  parser.idx = 0
   
   while parser.hasMoreCommands():
     parser.advance()
     
-    print(parser.command)
-    print(parser.commandType())
-    print(parser.symbol())
+    # print(parser.command)
+    # print(parser.commandType())
+    # print(parser.symbol())
 
-    if parser.commandType() == "A": # do L and symbols later
-      address = parser.symbol()
+    if parser.commandType() == "A":
+      if parser.symbol().isdigit():
+        address = parser.symbol()
+      else:
+        if not symboltable.contains(parser.symbol()): # variable
+          symboltable.addEntry(parser.symbol(), symboltable.ram)
+          symboltable.ram += 1
+        address = symboltable.getAddress(parser.symbol())
       output_file.write("0" + bin(int(address))[2:].zfill(15) + "\n") # get rid of 0b and pad with 0s
+      symboltable.rom += 1
+      
     elif parser.commandType() == "C":
       comp = Code.comp(parser.comp())
       dest = Code.dest(parser.dest())
       jump = Code.jump(parser.jump())
       output_file.write("111" + comp + dest + jump + "\n")
+      symboltable.rom += 1
     
+  print("Finished assembling")
   output_file.close()
