@@ -10,10 +10,6 @@ class Parser:
       self.input_file = [x.strip().replace(" ","") for x in f.readlines()] # whitespace
       self.input_file = [x for x in self.input_file if x and x[0] != "/"] # newline and comment
       self.input_file = [x.split("//")[0] for x in self.input_file] # inline comment
-  
-  @staticmethod
-  def strip(s):
-    return s.replace(" ", "")
       
   def hasMoreCommands(self):
     return self.idx < len(self.input_file)
