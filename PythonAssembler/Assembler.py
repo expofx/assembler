@@ -40,10 +40,10 @@ class Parser:
       return None
 
   def comp(self):
-    if "=" in self.command: # can these both happen at the same time? ex. D=A+1;JGT
-      return Parser.strip(self.command.split("=")[1])
+    if "=" in self.command:
+      return self.command.split("=")[1]
     elif ";" in self.command:
-      return Parser.strip(self.command.split(";")[0])
+      return self.command.split(";")[0]
     else:
       return None
       
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
   parser = Parser(input_file)
   symboltable = SymbolTable()
-  print(parser.input_file)
+  # print(parser.input_file)
   
   # first pass
   

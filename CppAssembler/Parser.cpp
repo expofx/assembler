@@ -37,9 +37,9 @@ Parser::Parser(string filename) {
   file.close();
 
   // print file
-  for (int i = 0; i < input_file.size(); i++) {
-    cout << input_file[i] << endl;
-  }
+  // for (int i = 0; i < input_file.size(); i++) {
+  //   cout << input_file[i] << endl;
+  // }
 }
 
 bool Parser::hasMoreCommands() {
