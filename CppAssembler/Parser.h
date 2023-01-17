@@ -6,11 +6,10 @@
 
 class Parser {
   private:
-    int idx;
     std::vector<std::string> input_file;
+    std::string command;
 
   public:
-    std::string command; // move to private later, for testing purposes
     Parser(std::string filename);
     bool hasMoreCommands();
     void advance();
@@ -19,6 +18,7 @@ class Parser {
     std::string dest();
     std::string comp();
     std::string jump();
+    int idx;
 };
 
 #endif
